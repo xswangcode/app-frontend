@@ -25,11 +25,11 @@ const logout_system = ()=>{
 </script>
 
 <template>
-  <div>
+  <div >
     <el-row class="header_container">
       <el-col :span="12">
         <el-row class="height_100">
-          <el-col :span="2">
+          <el-col :span="1" :xl="1" :xs="6"  :sm="2" :lg="2">
             <div class="header_item" style="font-size: 40px;color: #fff">
               <!-- 伸缩条 -->
               <el-icon @click="changeCollapse">
@@ -39,10 +39,10 @@ const logout_system = ()=>{
             </div>
           </el-col>
 
-          <el-col :span="20" :pull="1">
+          <el-col :span="20" :push="1" :xl="20" :xs="14"  :sm="18" :lg="18" >
             <div class="header_item web_title">
                   <span>
-                  欢迎 - 布局自适应宽度布局自适应宽度布局自适应宽度布局自适应宽度布局自适应宽度
+                  欢迎 - 布局自适应宽度布局自适应宽度布局
                   </span>
             </div>
           </el-col>
@@ -50,21 +50,21 @@ const logout_system = ()=>{
       </el-col>
       <el-col :span="12">
         <el-row>
-          <el-col :span="21" >
+          <el-col :span="21" :xs="14" :md="18" :sm="18" :lg="18">
             <div class="header_item">
               <!-- 消息提示占位 -->
             </div>
           </el-col>
-          <el-col :span="3">
+          <el-col :span="3" :xs="10" :md="6" :sm="6" :lg="6">
             <!-- 退出登录 -->
-            <el-dropdown>
+            <el-dropdown style="float: right">
               <div class="header_item">
                 <el-row class="height_100 width_100">
                   <!-- 用户信息 -->
-                  <el-col :span="8">
+                  <el-col :span="8" :xl="8" :xs="7"  :sm="7" :lg="6" >
                     <el-avatar :size="40" src="https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png"></el-avatar>
                   </el-col>
-                  <el-col :span="16">
+                  <el-col :span="16" :push="1" :xl="16" :xs="17"  :sm="17" :lg="18" >
                     <div class="name_span header_item">
                       <el-text type="danger" > YOM-yarn</el-text>
                     </div>

@@ -16,11 +16,7 @@ let token = getToken();
 
 
 if (!token) {
-  debugger
-  ElMessage({
-    type: "error",
-    message: "身份信息丢失,请重新登录"
-  })
+  ElMessage.error("身份信息丢失,请重新登录")
   router.push("/login");
 }
 
@@ -31,6 +27,13 @@ const test = () => {
   })
 }
 
+const push_test = () => {
+  router.push("/123123123131");
+}
+const ins = ref({
+  a:"",
+  b:''
+})
 
 </script>
 
@@ -38,5 +41,8 @@ const test = () => {
   <main>
     首页
     <el-button @click="test">test</el-button>
+    <el-button @click="push_test">push(12312312312)</el-button>
+    <el-input v-model="ins.a"></el-input>
+    <el-input v-model="ins.b"></el-input>
   </main>
 </template>
