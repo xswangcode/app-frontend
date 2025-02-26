@@ -1,32 +1,31 @@
-import './assets/main.css'
+import './assets/main.css';
 
-import {createApp,createVNode } from 'vue'
-import { createPinia } from 'pinia'
-import piniaPluginPersist from 'pinia-plugin-persist'
-import ElementPlus from 'element-plus'
-import 'element-plus/dist/index.css'
-// import * as ElementPlusIconsVue from '@element-plus/icons'
-import * as Icons from "@element-plus/icons-vue";
-import * as ElementPlusIconsVue from '@element-plus/icons-vue'
-import App from './App.vue'
-import router from './router'
+import {createApp} from 'vue';
+import {createPinia} from 'pinia';
+import piniaPluginPersist from 'pinia-plugin-persist';
+import ElementPlus from 'element-plus';
+import 'element-plus/dist/index.css';
+// 按需导入 Element Plus 图标
+import * as Icons from '@element-plus/icons-vue';
+import App from './App.vue';
+import router from './router';
 
+// 创建 Pinia 并使用插件
+const pinia = createPinia();
+pinia.use(piniaPluginPersist);
 
+// 创建 Vue 应用
+const app = createApp(App);
 
+// 使用插件
+app.use(router);
+app.use(pinia);
+app.use(ElementPlus);
 
-const pinia = createPinia()
-pinia.use(piniaPluginPersist)
-const app = createApp(App)
-app.use(router)
-app.use(pinia)
-app.use(ElementPlus)
-
-// 全局注册
-Object.keys(Icons).forEach((key) => {
-    app.component(key, Icons[key]);
+// 全局注册 Element Plus 图标
+Object.entries(Icons).forEach(([name, icon]) => {
+    app.component(name, icon);
 });
 
-
-app.mount('#app')
-
-
+// 挂载应用
+app.mount('#app');

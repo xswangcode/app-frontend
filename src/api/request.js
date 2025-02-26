@@ -1,42 +1,33 @@
 import axios from 'axios'
 import {APP_CONFIG} from '@/web.config.js';
-import {getToken,setToken} from "@/utils/StoreUtil.js";
+import {Logout_System} from "@/utils/SystemUtils.js"
 
 const instance = axios.create({
     baseURL: APP_CONFIG.APP_SERVER_BASE_URL,
+    withCredentials: true,
     timeout: 3000,
 })
+
 
 //region 配置instance
 // 添加请求拦截器
 instance.interceptors.request.use(function (config) {
-    // 在发送请求之前做些什么
-    config.headers.delete("X-Auth-Token")
-    let token = getToken();{
-        config.headers["X-Auth-Token"] = getToken()
-    }
-
-    console.log("请求拦截器",config)
     return config;
 }, function (error) {
-    // 对请求错误做些什么
-    console.log("axios请求出错了：", error)
     return Promise.reject(error);
 });
 // 添加响应拦截器
 instance.interceptors.response.use(function (response) {
-    // 2xx 范围内的状态码都会触发该函数。
-    if (response.headers["x-auth-token"]) {
-        setToken(response.headers["x-auth-token"])
+    let data = response.data
+    // 未认证
+    if (data.code === 401) {
+        Logout_System();
+        return data;
     }
-    console.log(response)
-    if (response.data.code > 400 && response.data.code < 500) {
-        console.error(response.data.message)
+    if (data.code !== 200) {
+        console.error(data.message)
     }
-    if (response.data.code >= 500) {
-        console.error(response.data.message)
-    }
-    return response.data;
+    return data;
 }, function (error) {
     return Promise.reject(error);
 });

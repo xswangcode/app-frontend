@@ -1,18 +1,22 @@
-import {defineStore} from 'pinia'
-
+import {defineStore} from 'pinia';
 
 export const useMenuStore = defineStore('menu', {
     state: () => ({
-        isCollapse: false
+        isCollapse: false,
     }),
-    getters: {},
+
     persist: {
-        enabled: true,
+        enabled: true, // 启用持久化存储
     },
+
     actions: {
+        // 切换 isCollapse 的状态
         changeCollapse() {
             this.isCollapse = !this.isCollapse;
-            console.log(this.isCollapse);
-        }
-    }
-})
+            // 在生产环境中可以去除 console.log，或者通过条件判断来控制是否打印
+            if (process.env.NODE_ENV !== 'production') {
+                console.log(this.isCollapse);
+            }
+        },
+    },
+});

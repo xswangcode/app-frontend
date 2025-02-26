@@ -19,7 +19,9 @@ const _parseMenuToRouter = (el) => {
 }
 
 export const parseMenuToRouter = (menuList,router)=>{
-    console.log("menuList",menuList)
+    if (!menuList) {
+        return router;
+    }
     let routers  = menuList.map(el=>_parseMenuToRouter(el))
     router && routers.forEach(el=>{
         router.addRoute(el)

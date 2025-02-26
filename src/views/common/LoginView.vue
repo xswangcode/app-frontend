@@ -1,43 +1,44 @@
 <script setup>
-import  router from '@/router/index.js'
-import {ref, getCurrentInstance} from 'vue'
+import {getCurrentInstance, ref} from 'vue'
 import API from "@/api/api.js";
 import {parseMenuToRouter} from "@/utils/MenuUtils.js";
-import {useAppStore}  from "@/stores/app.js"
+import {useAppStore} from "@/stores/app.js"
+import {useRouter} from 'vue-router'
 
 const appStore = useAppStore()
 
 const _this = getCurrentInstance()
 
-// 页面先加载是否有token, token直接登录
-// const router = useRouter()
-if (appStore.login_status) {
-  console.log("token存在,到首页");
-  // router.go("/home")
-}
+// // 页面先加载是否有token, token直接登录
+const router = useRouter()
+//
+// if (appStore.login_status) {
+//   debugger
+//   router.go("/home")
+// }
+
 const userLoginData = ref({
-  name: "xs",
+  username: "xs",
   password: "xs",
 })
 
 
 const login = () => {
   API.login_group.login(userLoginData.value).then(res => {
-    console.log("token", res.message);
     if (res.success) {
       // 加载权限菜单
       // 清空
-      router.options.routes =[]
+      router.options.routes = []
 
       // 获取菜单
-      API.menu_group.getMenu().then(res=>{
-        console.log("菜单", res.result);
+      API.menu_group.getMenu().then(res => {
         parseMenuToRouter(res.result, router)
 
-        appStore.setMenu(res.result)
+        appStore.setData("menus", res.result)
         appStore.setLogin(true)
-        appStore.setRouters(router.getRoutes())
+        appStore.setData("routers", router.getRoutes())
         router.push("/home")
+        alert("登录成功")
       })
 
     }
@@ -49,16 +50,16 @@ const login = () => {
 
 <template>
   <div class="login-container">
-      <el-form>
-        <el-form-item label="账户">
-          <el-input type="text" v-model="userLoginData.name"></el-input>
-        </el-form-item>
-        <el-form-item label="密码">
-          <el-input type="text" v-model="userLoginData.password"></el-input>
-        </el-form-item>
-      </el-form>
-      <el-button class="login-btn" type="primary" plain @click="login">登录</el-button>
-    </div>
+    <el-form>
+      <el-form-item label="账户">
+        <el-input v-model="userLoginData.username" type="text"></el-input>
+      </el-form-item>
+      <el-form-item label="密码">
+        <el-input v-model="userLoginData.password" type="text"></el-input>
+      </el-form-item>
+    </el-form>
+    <el-button class="login-btn" plain type="primary" @click="login">登录</el-button>
+  </div>
 
 </template>
 

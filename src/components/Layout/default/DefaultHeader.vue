@@ -1,23 +1,26 @@
 <script setup>
 import {useMenuStore} from "@/stores/menu.js";
 import {useAppStore} from "@/stores/app.js";
-import router  from "@/router/index.js";
+import {useTabsStore} from "@/stores/tabs.js";
+import router from "@/router/index.js";
 
 
 const menuStore = useMenuStore();
-console.log(menuStore.isCollapse);
 
 const appStore = useAppStore();
+const tabStore = useTabsStore()
 
 const changeCollapse = () => {
   menuStore.changeCollapse()
-  console.log(menuStore.isCollapse);
 }
 
 const logout_system = ()=>{
-  appStore.resetState()
-  localStorage.clear()
   router.push('/login')
+  setTimeout(() => {
+    appStore.resetState()
+    localStorage.clear()
+    tabStore.reset()
+  }, 1)
 }
 
 
