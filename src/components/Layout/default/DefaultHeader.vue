@@ -1,17 +1,14 @@
 <script setup>
-import {useMenuStore} from "@/stores/menu.js";
 import {useAppStore} from "@/stores/app.js";
 import {useTabsStore} from "@/stores/tabs.js";
 import router from "@/router/index.js";
 
 
-const menuStore = useMenuStore();
-
 const appStore = useAppStore();
 const tabStore = useTabsStore()
 
 const changeCollapse = () => {
-  menuStore.changeCollapse()
+  useAppStore.changeCollapse()
 }
 
 const logout_system = () => {
@@ -35,7 +32,7 @@ const logout_system = () => {
             <div class="header_item" style="font-size: 40px;color: #fff">
               <!-- 伸缩条 -->
               <el-icon @click="changeCollapse">
-                <Expand v-if="menuStore.isCollapse"/>
+                <Expand v-if="appStore.isCollapse"/>
                 <Fold v-else/>
               </el-icon>
             </div>

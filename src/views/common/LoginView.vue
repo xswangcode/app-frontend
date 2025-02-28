@@ -4,6 +4,7 @@ import API from "@/api/api.js";
 import {parseMenuToRouter} from "@/utils/MenuUtils.js";
 import {useAppStore} from "@/stores/app.js"
 import {useRouter} from 'vue-router'
+import {ElMessage} from "element-plus";
 
 const appStore = useAppStore()
 
@@ -38,7 +39,7 @@ const login = () => {
         appStore.setLogin(true)
         appStore.setData("routers", router.getRoutes())
         router.push("/home")
-        alert("登录成功")
+        ElMessage.success("登录成功")
       })
 
     }

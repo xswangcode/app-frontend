@@ -1,5 +1,4 @@
 import {defineStore} from 'pinia'
-import router from '@/router/index.js';
 
 
 export const use404Store = defineStore('404', {
@@ -11,23 +10,17 @@ export const use404Store = defineStore('404', {
     actions: {
         // 重置状态
         reset() {
-            this.setFrom(null)
-            this.setTo(null)
-            this.setMsg(null)
+            this.setInfo(null, null, null)
         },
-        setFrom(from_path) {
-            this.from = from_path;
-        },
-        setTo(to_path) {
-            this.to = to_path;
-        },
-        setMsg(msg) {
+        setInfo(from, to, msg) {
+            this.from = from;
+            this.to = to;
             this.msg = msg;
         },
     },
     getters: {},
     persist: {
-        enabled: true,
+        enabled: false,
     }
 })
 

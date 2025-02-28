@@ -36,8 +36,8 @@ export const useTabsStore = defineStore('tabs', {
 
         // 删除 tab
         removeTab(tabName) {
-            if (tabName === '首页') return;
-            const tabIndex = this.tabs.findIndex(item => item.name === tabName);
+            if (tabName === '首页' || tabName === '/home') return;
+            const tabIndex = this.tabs.findIndex(item => item.name === tabName || item.path === tabName);
             if (tabIndex !== -1) {
                 this.tabs.splice(tabIndex, 1);
             }

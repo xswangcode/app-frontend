@@ -1,9 +1,10 @@
 import {createRouter, createWebHistory} from 'vue-router'
 import API from "@/api/api.js";
 import {parseMenuToRouter} from "@/utils/MenuUtils.js";
+import {Logout_System} from "@/utils/SystemUtils.js";
 import {useAppStore} from "@/stores/app.js";
 import {useTabsStore} from "@/stores/tabs.js";
-
+import {use404Store} from "@/stores/404.js";
 
 const modules = import.meta.glob('./../views/**/*.vue');
 
@@ -27,18 +28,28 @@ if (!sessionStorage.app || !JSON.parse(sessionStorage.app).login_status) {
 router.beforeEach((to, from, next) => {
     const appStore = useAppStore();
     const tabsStore = useTabsStore();
+    const store404 = use404Store();
 
-    if (!appStore.login_status && to.path !== "/login") {
-        tabsStore.setTabs([]);  // 清空 tabs
-        next('/login');  // 跳转到登录页面
+    console.log(from.path + " ==> " + to.path)
+    if (!appStore.login_status) {
+        if (to.path === "/login")
+            next()
+        else {
+            Logout_System();
+            next("/login")
+        }
+    } else if (appStore.routers.filter(x => x.path === to.path).length === 0) {
+        store404.setInfo(from.path, to.path, "找不到指定的页面！")
+        next("/404")
     } else {
+        // 在正常情况下
         tabsStore.addTab({
             name: to.name,
             path: to.path
         })
-        console.log(tabsStore.tabs);
-        next();
+        next()
     }
+
 })
 router.onError((handler) => {
     console.log(handler);

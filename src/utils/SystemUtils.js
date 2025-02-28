@@ -2,17 +2,17 @@ import router from "@/router/index.js"
 import {useAppStore} from "@/stores/app.js"
 import {useTabsStore} from "@/stores/tabs.js"
 
-const getTabsStore = () => useTabsStore()
-const getAppStore = () => useAppStore()
-
 /**
  * 退出登录， 待测试
  */
 export const Logout_System = () => {
+    const tabsStore = useTabsStore()
+    const appStore = useAppStore()
     router.push('/login')
-    getAppStore().resetState()
+    appStore.resetState()
     localStorage.clear()
-    getTabsStore().reset()
+    sessionStorage.clear()
+    tabsStore.reset()
 }
 
 

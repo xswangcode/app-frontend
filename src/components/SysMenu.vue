@@ -2,11 +2,11 @@
 <script setup>
 import SysMenuItem from "@/components/components/SysMenuItem.vue";
 
-import {useMenuStore} from "@/stores/menu.js";
 import {storeToRefs} from "pinia";
+import {useAppStore} from "@/stores/app.js";
 
-const menuStore = useMenuStore();
-const {isCollapse} = storeToRefs(menuStore);
+const appStore = useAppStore();
+const {isCollapse} = storeToRefs(appStore);
 
 const DefineProp = defineProps(["menus"]);
 const clickHandle = (evt) => {
