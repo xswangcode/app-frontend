@@ -4,7 +4,6 @@ import {parseMenuToRouter} from "@/utils/MenuUtils.js";
 import {useAppStore} from "@/stores/app.js";
 import {useTabsStore} from "@/stores/tabs.js";
 
-;
 
 const modules = import.meta.glob('./../views/**/*.vue');
 
@@ -29,10 +28,15 @@ router.beforeEach((to, from, next) => {
     const appStore = useAppStore();
     const tabsStore = useTabsStore();
 
-    if (!appStore.login_status && to.path !== "/login" && to.path !== "/") {
+    if (!appStore.login_status && to.path !== "/login") {
         tabsStore.setTabs([]);  // 清空 tabs
         next('/login');  // 跳转到登录页面
     } else {
+        tabsStore.addTab({
+            name: to.name,
+            path: to.path
+        })
+        console.log(tabsStore.tabs);
         next();
     }
 })

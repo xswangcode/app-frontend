@@ -1,148 +1,301 @@
-<script setup xmlns:el-col="http://www.w3.org/1999/html">
+<script setup>
 import {RouterView} from 'vue-router'
-import {getCurrentInstance, ref, watch} from 'vue'
+import {onBeforeUnmount, onMounted, ref} from 'vue'
 import SysMenu from "@/components/SysMenu.vue";
 import DefaultHeader from "@/components/Layout/default/DefaultHeader.vue";
 import router from "@/router/index.js";
-
 import {useAppStore} from "@/stores/app.js"
 import {storeToRefs} from 'pinia'
-
 import {useTabsStore} from "@/stores/tabs.js"
 
+
+// 获取 store
 const tabsStore = useTabsStore()
 const appStore = useAppStore()
 const {menus, login_status} = storeToRefs(appStore)
-
-
-const _this = getCurrentInstance()
-
 const is_login = ref(login_status)
-watch(login_status, (newVal, oldVal) => {
 
+// 定义右键菜单状态
+const contextMenu = ref({
+  visible: false,
+  x: 0,
+  y: 0,
+  targetTab: null
 })
+// 用于保存 pending 定时器的引用，避免重复显示
+let menuTimeout = null
+// 打开右键菜单，先关闭已有菜单
+const openContextMenu = (event, tab) => {
+  // 关闭之前的菜单
+  closeContextMenu()
+
+  // 如果存在 pending 定时器，先清除
+  if (menuTimeout) {
+    clearTimeout(menuTimeout)
+    menuTimeout = null
+  }
+  // 延迟执行（可根据需要调整，或者直接立即显示）
+  menuTimeout = setTimeout(() => {
+    contextMenu.value = {
+      visible: true,
+      x: event.clientX,
+      y: event.clientY,
+      targetTab: tab
+    }
+    menuTimeout = null
+  }, 0)
+}
+
+// 关闭右键菜单
+const closeContextMenu = () => {
+  contextMenu.value.visible = false
+}
+
+// 监听全局点击事件，点击其他地方关闭右键菜单
+const onGlobalClick = (e) => {
+  // 若点击的是右键菜单本身，则不关闭
+  const menuEl = document.querySelector('.context-menu')
+  if (menuEl && menuEl.contains(e.target)) return
+  closeContextMenu()
+}
+
+// 注册全局点击监听
+onMounted(() => {
+  document.addEventListener('click', onGlobalClick)
+})
+onBeforeUnmount(() => {
+  document.removeEventListener('click', onGlobalClick)
+})
+
+// 处理右键菜单命令，根据命令调用相应函数
+const handleCommand = (command) => {
+  const tabName = contextMenu.value.targetTab?.name
+  if (!tabName) return
+  switch (command) {
+    case 'close':
+      if (tabName !== '首页') {
+        tabsStore.removeTab(tabName)
+        if (tabsStore.currentTab === tabName && tabsStore.tabs.length > 0) {
+          const newTab = tabsStore.tabs[tabsStore.tabs.length - 1]
+          router.push(newTab.path)
+        }
+      }
+      break
+    case 'closeOthers':
+      closeOtherTabs(tabName)
+      break
+    case 'closeLeft':
+      closeLeftTabs(tabName)
+      break
+    case 'closeRight':
+      closeRightTabs(tabName)
+      break
+    case 'closeAll':
+      closeAllTabs()
+      break
+    case 'refresh':
+      refreshTab(tabName)
+      break
+    default:
+      break
+  }
+  // 执行完后关闭菜单
+  closeContextMenu()
+}
+
+// 功能函数
+const closeOtherTabs = (tabName) => {
+  tabsStore.tabs = tabsStore.tabs.filter(tab => tab.name === '首页' || tab.name === tabName)
+  tabsStore.setCurrentTab(tabName)
+  const tab = tabsStore.tabs.find(tab => tab.name === tabName)
+  if (tab) router.push(tab.path)
+}
+
+const closeLeftTabs = (tabName) => {
+  const index = tabsStore.tabs.findIndex(tab => tab.name === tabName)
+  if (index > -1) {
+    tabsStore.tabs = tabsStore.tabs.filter((tab, idx) => idx >= index || tab.name === '首页')
+    tabsStore.setCurrentTab(tabName)
+    const tab = tabsStore.tabs.find(tab => tab.name === tabName)
+    if (tab) router.push(tab.path)
+  }
+}
+
+const closeRightTabs = (tabName) => {
+  const index = tabsStore.tabs.findIndex(tab => tab.name === tabName)
+  if (index > -1) {
+    tabsStore.tabs = tabsStore.tabs.filter((tab, idx) => idx <= index || tab.name === '首页')
+    tabsStore.setCurrentTab(tabName)
+    const tab = tabsStore.tabs.find(tab => tab.name === tabName)
+    if (tab) router.push(tab.path)
+  }
+}
+
+const closeAllTabs = () => {
+  const homepage = tabsStore.tabs.find(tab => tab.name === '首页')
+  if (homepage) {
+    tabsStore.setTabs([homepage])
+    tabsStore.setCurrentTab(homepage.name)
+    router.push(homepage.path)
+  }
+}
+
+const refreshTab = (tabName) => {
+  const tab = tabsStore.tabs.find(tab => tab.name === tabName)
+  if (tab) {
+    router.replace({path: tab.path, query: {t: Date.now()}})
+  }
+}
+
 const layout = () => {
   appStore.resetState()
   router.push("/login");
 }
 
-const handleTabRemove = (name) => {
-  tabsStore.removeTab(name)
+// 已有的 tab 切换与关闭事件
+const handleTabChange = (name) => {
+  tabsStore.setCurrentTab(name);  // 更新当前 tab
+  const tab = tabsStore.tabs.find(tab => tab.name === name);
+  if (tab) {
+    router.push(tab.path);  // 跳转到对应路径
+  }
 }
 
-const container_main_config = ref({
-  style: "width:calc(90vw)"
-})
-const menu_config = ref({
-  width: "260px"
-})
-const editableTabs = ref([
-  {
-    title: 'home',
-    name: 'home',
-  },
-  {
-    title: 'dashboard',
-    name: 'dashboard',
-  },
-])
-
+const handleTabRemove = (name) => {
+  tabsStore.removeTab(name);
+  if (tabsStore.currentTab === name && tabsStore.tabs.length > 0) {
+    const newTab = tabsStore.tabs[tabsStore.tabs.length - 1];
+    router.push(newTab.path);
+  }
+}
 </script>
 
 <template>
   <div v-if="is_login">
     <el-container>
       <el-aside width="auto">
-        <SysMenu :menus="menus" style="height: 100vh;"></SysMenu>
+        <el-scrollbar height="100vh">
+          <SysMenu :menus="menus" style="height: 100vh;"/>
+        </el-scrollbar>
       </el-aside>
       <el-container>
-        <!--      style="max-width: 90vw;min-width: 80vw;"-->
-        <el-header style="border: 1px solid red;background-color: #00abff;width: 100%;padding: 0">
-          <DefaultHeader></DefaultHeader>
-
+        <el-header style=" height:55px;padding: 0">
+          <DefaultHeader/>
         </el-header>
-        <el-main style="border: 1px solid red;">
-          <!--          不要面包屑要tabs-->
-          <div style="display: flex;width: 100%;height: 100%">
-            <el-tabs v-model="tabsStore.currentTab" :closable="true" class="eltabs"
-                     type="border-card"
+        <el-main>
+          <div style="display: flex; width: 100%; height: 100%; ">
+            <el-tabs v-model="tabsStore.currentTab"
+                     class="eltabs"
+                     type="card"
+                     @tab-change="handleTabChange"
                      @tab-remove="handleTabRemove">
               <el-tab-pane
                   v-for="it in tabsStore.tabs"
                   :key="it.name"
                   :label="it.title"
-                  :name="it.name"
-              >
+                  :name="it.name">
                 <template #label>
-                  <span class="custom-tabs-label">
-                    <span>{{ it.name }}</span>
-                  </span>
+                    <span class="custom-tabs-label" @contextmenu.prevent="openContextMenu($event, it)">
+                      <span>{{ it.name }}</span>
+                    </span>
                 </template>
+                <div class="main_content">
+                  <el-scrollbar height="86vh">
+                    <!-- 显示 tab 对应内容 -->
+                    <router-view v-slot="{ Component }">
+                      <keep-alive>
+                        <component :is="Component" :key="$route.fullPath"/>
+                      </keep-alive>
+                    </router-view>
+                  </el-scrollbar>
+                </div>
               </el-tab-pane>
-              <RouterView/>
             </el-tabs>
-<!--            <div class="tab_content" style="border: 1px springgreen solid;width: 100%;height: 100%;">-->
-
-
-            <!--            </div>-->
+            <!-- 自定义右键菜单 -->
+            <ul
+                v-if="contextMenu.visible"
+                :style="{ top: contextMenu.y + 'px', left: contextMenu.x + 'px' }"
+                class="context-menu"
+            >
+              <li @click="handleCommand('close')">关闭当前</li>
+              <li @click="handleCommand('closeOthers')">关闭其他</li>
+              <li @click="handleCommand('closeLeft')">关闭左侧</li>
+              <li @click="handleCommand('closeRight')">关闭右侧</li>
+              <li @click="handleCommand('closeAll')">关闭所有</li>
+              <li @click="handleCommand('refresh')">刷新</li>
+            </ul>
           </div>
-          <!--            <el-col :span="24" style="align-items: flex-end;justify-content: left;display: flex;">-->
-          <!--              <el-breadcrumb separator="/" style="padding-left: 10px;padding-bottom: 10px;font-size: 12px;">-->
-          <!--                <el-breadcrumb-item> promotion list </el-breadcrumb-item>-->
-          <!--                <el-breadcrumb-item> promotion detail </el-breadcrumb-item>-->
-          <!--              </el-breadcrumb>-->
-          <!--            </el-col>-->
-
         </el-main>
-        <el-footer style="border: 1px solid red;">
-          <div style="text-align: center;margin-top: 20px">
+        <el-footer>
+          <div style="text-align: center; margin-top: 20px">
             XXXXXXXXXXXXX powered BY xxxs
           </div>
-
         </el-footer>
       </el-container>
     </el-container>
   </div>
   <div v-else>
     <el-container>
-      <el-main style="border: 1px springgreen solid;height: 100vh">
-        <RouterView style="border: 1px solid #e3e3e3;"/>
+      <el-main style="border: 1px solid #f7f7f7; height: 100vh">
+        <RouterView/>
       </el-main>
     </el-container>
   </div>
 </template>
 
-
 <style scoped>
-
-
-.el-container {
-  weight: 100%;
-  height: 100%;
-}
-
 .el-main {
   padding: 0;
 }
 
+.el-aside {
+  transition: width 0.3s ease;
+}
+
 .eltabs {
   width: 100%;
+  min-height: 55px;
 }
 
-.eltabs > .el-tabs__content {
-  padding: 32px;
-  color: #6b778c;
-  font-size: 32px;
-  font-weight: 600;
+.el-tabs {
+  --el-tabs-header-height: 58px !important;
 }
 
-.eltabs .custom-tabs-label .el-icon {
-  vertical-align: middle;
+.custom-tabs-label {
+  cursor: pointer;
+  font-size: 18px;
+
 }
 
-.eltabs .custom-tabs-label span {
-  vertical-align: middle;
-  margin-left: 4px;
+.el-tabs {
+  --el-tabs-header-height: 43px;
 }
+
+/* 右键菜单样式 */
+.context-menu {
+  position: absolute;
+  z-index: 1000;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  list-style: none;
+  margin: 0;
+  padding: 4px 0;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  font-size: 12px;
+}
+
+.context-menu li {
+  padding: 4px 12px;
+  cursor: pointer;
+}
+
+.context-menu li:hover {
+  background-color: #f2f2f2;
+}
+
+.main_content {
+  border: 1px springgreen solid;
+}
+
 
 </style>
